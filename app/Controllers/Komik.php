@@ -178,17 +178,19 @@ class Komik extends BaseController
             return redirect()->to('komik/edit/' . $this->request->getVar('slug'))->withInput();
         }
         // get sampul
-        $sampul = $this->request->getFile('sampul');
+        $fileSampul = $this->request->getFile('sampul');
+        // cek gambar, apakah tetap gambar lama
+        $sampulLama = $this->request->getVar('lama');
         // cek sampul
-        if ($sampul->getError() == 4) {
-            $namaSampul = $this->request->getVar('lama');
+        if ($fileSampul->getError() == 4) {
+            $namaSampul = $sampulLama;
         } else {
             // random name
-            $namaSampul = $sampul->getRandomName();
+            $namaSampul = $fileSampul->getRandomName();
             // move to img
-            $sampul->move('img', $namaSampul);
+            $fileSampul->move('img', $namaSampul);
             // hapus file lama
-            unlink('img/' . $this->request->getVar('lama'));
+            unlink('img/' . $sampulLama);
         }
         $this->komikModel->save([
             'id' => $id,
@@ -196,7 +198,7 @@ class Komik extends BaseController
             'slug' => url_title($this->request->getVar('judul'), '-', true),
             'penulis' => $this->request->getVar('penulis'),
             'penerbit' => $this->request->getVar('penerbit'),
-            'sampul' => $sampul
+            'sampul' => $namaSampul
         ]);
         session()->setFlashdata('pesan', 'Data berhasil diedit.');
         return redirect()->to('/komik');
